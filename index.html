@@ -40,7 +40,7 @@
         var time_game_last_running; // when did the game finish? 
         var bottom_bar_offset = 0; // the sliding bar along the bottom
         var pipes = []; // all our pipe-halves
-
+        context.imageSmoothingEnabled = false // Make all images pixelated
         //Function to get the mouse position
         function getMousePos(canvas, event) {
             var rect = canvas.getBoundingClientRect();
