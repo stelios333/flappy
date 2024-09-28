@@ -275,7 +275,7 @@
             add_pipe(3300, 250, 80);
             add_pipe(3600, 50, 60);
 
-            var finish_line = new MySprite("https://s2js.com/img/etc/flappyend.png");
+            var finish_line = new MySprite("finish_line.png");
             finish_line.x = 3900;
             finish_line.velocity_x = pipe_speed;
             pipes.push(finish_line);
@@ -338,7 +338,7 @@
         }
 
         var bottom_bar = new MySprite("bottom.png");
-        var bird = new MySprite("https://s2js.com/img/etc/flappybird.png");
+        var bird = new MySprite("flappybird.png");
         bird.x = myCanvas.width / 3;
         bird.y = myCanvas.height / 2;
 
