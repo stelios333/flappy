@@ -1,37 +1,55 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <title>Flappy Bird</title>
-    <meta name="viewport" 
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <meta charset="UTF-8">
     <style>
-        html {
-            margin: 0;
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0
         }
 
         body {
-            margin: 0;
             font-family: Arial, Helvetica, sans-serif;
-            overflow: hidden;
         }
 
         #myCanvas {
             margin: 0;
             background-size: 100%;
             background: #5cbdd7;
+            image-rendering: pixelated;
+        }
+
+        .main-content {
+            margin: 0;
+            box-sizing: border-box;
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        @font-face {
+            font-family: 'Pixelify Sans';
+            src: url('PixelifySans.ttf');
         }
     </style>
 </head>
 
 <body>
-
-    <canvas id="myCanvas" width=320 height=480>
-    </canvas>
-
+    <div class="main-content">
+        <canvas id="myCanvas" width=320 height=480>
+        </canvas>
+    </div>
     <script>
         var ctx = myCanvas.getContext("2d"); // Get the drawing context for the canvas
-        var FPS = 40; // The original game runs at 60
+        var FPS = 60; // The original game runs at 60
+        var game_speed = 25;
+        var previous_time = 0;
+        var time_delta = game_speed;
         var jump_amount = -10; // how much the bird jumps
         var max_fall_speed = +10; // how fast the bird can fall
         var acceleration = 1; // how quickly it goes from jumping to falling
@@ -40,6 +58,7 @@
         var time_game_last_running; // when did the game finish? 
         var bottom_bar_offset = 0; // the sliding bar along the bottom
         var pipes = []; // all our pipe-halves
+        const default_font = "Pixelify Sans"
         ctx.imageSmoothingEnabled = false // Make all images pixelated
         //Function to get the mouse position
         function getMousePos(canvas, event) {
@@ -67,22 +86,30 @@
             this.MyImg = new Image();
             this.MyImg.src = img_url || '';
             this.angle = 0; // How many degrees we are rotated
+            this.previous_angle = 0
             this.flipV = false; // Are we flipped vertically 
             this.flipH = false; // Are we flipped horizontally
         }
 
 
         MySprite.prototype.Do_Frame_Things = function () {
+
             ctx.save();
             ctx.translate(this.x + this.MyImg.width / 2, this.y + this.MyImg.height / 2);
-            ctx.rotate(this.angle * Math.PI / 180); // rotating
+
+            if (this.angle != this.previous_angle) {
+                ctx.rotate((this.angle * Math.PI / 180) * (time_delta / game_speed)); // rotating
+            } else {
+                ctx.rotate((this.angle * Math.PI / 180))
+            }
             if (this.flipV) ctx.scale(1, -1); // flipping
             if (this.flipH) ctx.scale(-1, 1);
-
+            this.x = this.x + this.velocity_x * (time_delta / game_speed);
+            this.y = this.y + this.velocity_y * (time_delta / game_speed);
             if (this.visible) ctx.drawImage(this.MyImg, -this.MyImg.width / 2, -this.MyImg.height / 2);
-            this.x = this.x + this.velocity_x;
-            this.y = this.y + this.velocity_y; // move the thing
+
             ctx.restore(); // unwarp the context
+            this.previous_angle = this.angle
         }
 
 
@@ -126,7 +153,7 @@
 
         function make_bird_slow_and_fall() {
             if (bird.velocity_y < max_fall_speed) {
-                bird.velocity_y = bird.velocity_y + acceleration; // bird accelerates downward
+                bird.velocity_y = bird.velocity_y + acceleration * (time_delta / game_speed); // bird accelerates downward
             }
             if (bird.y > myCanvas.height - bird.MyImg.height) { // gone off bottom
                 bird.velocity_y = 0;
@@ -177,18 +204,11 @@
 
         function display_intro_instructions() {
             ctx.textBaseline = 'middle';
-            ctx.textAlign = "center";
-            ctx.font = "25px Arial";
+            ctx.font = "30px " + default_font;
             ctx.fillStyle = "brown";
-            ctx.textAlign = "center";
-            var width = ctx.measureText("Click or press space to start").width;
-            ctx.fillRect(myCanvas.width / 2 - width / 2 - 20, myCanvas.height / 2 - 32.5 - 20, width + 40, 25 + 40);
-            ctx.fillStyle = "red";
-            ctx.fillRect(myCanvas.width / 2 - width / 2 - 15, myCanvas.height / 2 - 32.5 - 15, width + 30, 25 + 30);
-            ctx.fillStyle = "white";
-            ctx.fillText("Click or press space to start", myCanvas.width / 2, myCanvas.height / 2 - 20);
-            ctx.textBaseline = 'alphabetic';
-            ctx.textAlign = "left";
+
+            var text = "Touch to start game!"
+            draw_text_in_the_middle(text, 0, 10)
         }
 
         function display_game_over() {
@@ -197,27 +217,39 @@
             var score = 0; // calculate the score
             for (var i = 0; i < pipes.length; i++)
                 if (pipes[i].x < bird.x) score = score + 0.5; // half a point for each pipe half
-            ctx.font = "30px Arial";
+            ctx.font = "40px " + default_font;
             ctx.fillStyle = "red";
-            ctx.textAlign = "center";
             ctx.fillText("Game Over", myCanvas.width / 2, myCanvas.height / 2 - 100);
             ctx.fillText("Score: " + score, myCanvas.width / 2, myCanvas.height / 2 - 60);
-            ctx.font = "20px Arial";
-            var width = ctx.measureText("Click or press space to play again").width;
-            ctx.fillStyle = "brown";
-            ctx.fillRect(myCanvas.width / 2 - width / 2 - 20, myCanvas.height / 2 + 25, width + 40, 25 + 25);
-            ctx.fillStyle = "red";
-            ctx.fillRect(myCanvas.width / 2 - width / 2 - 15, myCanvas.height / 2 + 30, width + 30, 25 + 15);
-            ctx.fillStyle = "white";
-            ctx.fillText("Click or press space to play again", myCanvas.width / 2, myCanvas.height / 2 + 50);
-            ctx.textBaseline = 'alphabetic';
-            ctx.textAlign = "left";
+            ctx.font = "30px " + default_font;
+            var text = "Touch to restart!"
+            draw_text_in_the_middle(text, 30)
         }
 
+        function draw_text_in_the_middle(text, offset_y = 0, padding = 15, box_spacing = 5) {
+            var metrics = ctx.measureText(text)
+            var width = metrics.width;
+            var lineHeight = (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) * 1.3;
+
+            ctx.fillStyle = "#eee";
+            ctx.fillRect(myCanvas.width / 2 - width / 2 - padding - box_spacing, myCanvas.height / 2 - padding + offset_y - box_spacing, width + padding * 2 + box_spacing * 2, lineHeight + padding * 2 + box_spacing * 2);
+            ctx.fillStyle = "#cc0000";
+            ctx.fillRect(myCanvas.width / 2 - width / 2 - padding, myCanvas.height / 2 - padding + offset_y, width + padding * 2, lineHeight + padding * 2);
+
+
+            ctx.fillStyle = "#eee";
+            ctx.textBaseline = 'top';
+            ctx.textAlign = "left";
+            ctx.fillText(text, myCanvas.width / 2 - width / 2, myCanvas.height / 2 + offset_y);
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillStyle = "white";
+
+        }
 
         function display_bar_running_along_bottom() {
-            if (bottom_bar_offset < -23) bottom_bar_offset = 0;
-            ctx.drawImage(bottom_bar, bottom_bar_offset, myCanvas.height - bottom_bar.height);
+            if (bottom_bar.x < -23) bottom_bar.x = 0;
+            bottom_bar.y = myCanvas.height - bottom_bar.MyImg.height
+            bottom_bar.Do_Frame_Things()
         }
 
 
@@ -256,23 +288,26 @@
             for (var i = 0; i < pipes.length; i++)
                 if (pipes[i].x < bird.x) score = score + 0.5;
 
-            ctx.font = "20px Arial";
+            ctx.font = "20px " + default_font;
 
             var width = ctx.measureText("Score: " + score).width;
             ctx.fillStyle = "brown"
             ctx.fillRect(0, 0, width + 10, 25)
             ctx.fillStyle = "white";
-            ctx.fillText("Score: " + score, 5, 20);
+            ctx.fillText("Score: " + score, 5, 18);
         }
+
         var pipe_piece = new Image();
-        pipe_piece.onload = add_all_my_pipes; // what until the image loads
+        pipe_piece.onload = add_all_my_pipes; // wait until the image loads
         pipe_piece.src = "flappypipe_f.png";
         var flappyback = new Image();
         flappyback.src = "flappyback.png";
         function Do_a_Frame() {
+            time_delta = Date.now() - previous_time
+            previous_time = Date.now()
             ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
             draw_backround()
-            bird.Do_Frame_Things();
+            bird.Do_Frame_Things()
             if (game_mode == "over" || game_mode == "prestart") {
                 display_bar_running_along_bottom();
             }
@@ -283,8 +318,8 @@
                 }
                 case 'running': {
                     time_game_last_running = new Date(); // Game was still running at this time
-                    bottom_bar_offset = bottom_bar_offset + pipe_speed;
                     show_the_pipes();
+                    bottom_bar.x += pipe_speed * (time_delta / game_speed)
                     display_bar_running_along_bottom();
                     draw_score()
                     make_bird_tilt_appropriately();
@@ -297,24 +332,24 @@
                     display_game_over();
                     break;
                 }
-            } // switch
+            }
+
 
         }
 
-        var bottom_bar = new Image();
-        bottom_bar.src = "bottom.png";
-
+        var bottom_bar = new MySprite("bottom.png");
         var bird = new MySprite("https://s2js.com/img/etc/flappybird.png");
         bird.x = myCanvas.width / 3;
         bird.y = myCanvas.height / 2;
 
         setInterval(Do_a_Frame, 1000 / FPS);
         window.onresize = function () {
-            myCanvas.width = window.innerWidth;
-            myCanvas.height = window.innerHeight; // set my frame renderer
+            myCanvas.width = document.body.clientWidth;
+            myCanvas.height = document.body.clientHeight; // set my frame renderer
         }
-        myCanvas.width = window.innerWidth;
-        myCanvas.height = window.innerHeight;
+
+        myCanvas.width = document.body.clientWidth;
+        myCanvas.height = document.body.clientHeight;
     </script>
 </body>
 
