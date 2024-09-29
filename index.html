@@ -93,7 +93,6 @@
 
 
         MySprite.prototype.Do_Frame_Things = function () {
-
             ctx.save();
             ctx.translate(this.x + this.MyImg.width / 2, this.y + this.MyImg.height / 2);
 
@@ -185,7 +184,7 @@
             if (bird.velocity_y < 0) {
                 bird.angle = -15; // going up, point up
             } else if (bird.angle < 70) { // max downward tilt is 70 degrees 
-                bird.angle = bird.angle + 4; // going down, point more and more down
+                bird.angle += 4; // going down, point more and more down
             }
         }
 
