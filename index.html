@@ -45,7 +45,8 @@
         </canvas>
     </div>
     <script>
-        var ctx = myCanvas.getContext("2d"); // Get the drawing context for the canvas
+        var canvas = document.getElementById('myCanvas');
+        var ctx = canvas.getContext("2d"); // Get the drawing context for the canvas
         var FPS = 60; // The original game runs at 60
         var game_speed = 25;
         var previous_time = 0;
@@ -73,8 +74,7 @@
             return pos.x > rect.x && pos.x < rect.x + rect.width && pos.y < rect.y + rect.height && pos.y > rect.y
         }
 
-        var canvas = document.getElementById('myCanvas');
-        var context = canvas.getContext('2d');
+        
         //The rectangle should have x,y,width,height properties
 
         function MySprite(img_url) {
